@@ -37,6 +37,14 @@ public class Heap {
         this.limt = limt;
     }
     
+    public boolean verificaLimite(float limite_cheio){
+        float limite = (heap.length * (limite_cheio / 100));
+        if ((heap.length - cont_pag_livre) >= (int) limite) {              
+                System.out.println("Precisa limpar");
+                return true;
+        }else
+            return false;
+    }
 
     /**
      *
@@ -46,48 +54,43 @@ public class Heap {
      * busca sequencial por meio do identificador de ocupado para achar paginas
      * livres.
      */
-    public void insereHeap(Requisicao req, float limite_cheio) {
+    public void insereHeap(Requisicao req ) {
         int qtdpag = req.getQtdpag();
         System.out.print("---> Requisição nº " + req.getId());
         System.out.println(" com " + req.getQtdpag() + " paginas <---");
         Random rand = new Random();
-        int pos;
+        int pos;        
         if (cont_pag_livre >= qtdpag) { //se tenho paginas livres o suficiente para a requisicao
             do {
-                if (cont_pag_livre >= (heap.length / 2)) { //se tem menos de 50% do heap ocupado, insere de forma aleatoria
-                    pos = rand.nextInt(this.heap.length - 1); //sortear uma posição do vetor e checar se ela está livre
+//                if (cont_pag_livre >= (heap.length*0.6)) { //se tem menos de 50% do heap ocupado, insere de forma aleatoria
+                    pos = rand.nextInt(this.heap.length); //sortear uma posição do vetor e checar se ela está livre
                     if (qtdpag > 0 && this.heap[pos].isOcupado() == false) { //se ainda tem pag pra inserir e posicao livre
                         this.heap[pos] = req.getPaginas()[qtdpag - 1]; // [e assim para ser decrescente como no if externo
                         this.heap[pos].setOcupado(true);
+                        
 
                         cont_pag_livre--;
                         qtdpag--;
                         System.out.println("pagina da requisicao inserida!");
                     }
-                } else { //se está mais de 50% ocupado, procura proxima sequencial
-                    for (int i = 0; i < this.heap.length; i++) {
-                        if (qtdpag > 0 && this.heap[i].isOcupado() == false) {
-                            this.heap[i] = req.getPaginas()[qtdpag - 1];
-                            this.heap[i].setOcupado(true);
-
-                            cont_pag_livre--;
-                            qtdpag--;
-                            System.out.println("pagina da requisicao inserida!");
-                        }
-                    }
-                }
-
+//                } else { //se está mais de 50% ocupado, procura proxima sequencial
+//                    for (int i = 0; i < this.heap.length; i++) {
+//                        if (qtdpag > 0 && this.heap[i].isOcupado() == false) {
+//                            this.heap[i] = req.getPaginas()[qtdpag - 1];
+//                            this.heap[i].setOcupado(true);
+//                           
+//                            cont_pag_livre--;
+//                            qtdpag--;
+//                            System.out.println("pagina da requisicao inserida!");
+//                        }
+//                    }
+//                }
             } while (qtdpag > 0);
             ids.add(req.getPaginas()[0].getEndereço());
             ids.add((long) req.getQtdpag());
-            System.out.println("A requisição foi inserida com sucesso");
-            float limite = (heap.length * (limite_cheio / 100));
-            if ((heap.length - cont_pag_livre) >= (int) limite) {
-                limt = true;
-            }
+            System.out.println("A requisição foi inserida com sucesso");           
         } else {
-            System.out.println("Não há espaço disponível para inserir essa requisição!");
-            
+            System.out.println("Não há espaço disponível para inserir essa requisição!");            
         }
     }
 
@@ -99,14 +102,13 @@ public class Heap {
      */
     public void removeHeap(float limite_cheio) {
         long id, qtd;
-        int aux = 0;
+        int aux;
         float limite = (heap.length * (limite_cheio / 100));
         System.out.println("Limite do heap: " + limite);
         if ((heap.length - cont_pag_livre) >= (int) limite) {
-            int qtd_retirar = (int) (limite * 0.25); //qtd necessaria de paginas para retirar e chegar a 25% abaixo do limite estabelecido
+            int qtd_retirar = (int) (limite * 0.5); //qtd necessaria de paginas para retirar e chegar a 25% abaixo do limite estabelecido
             System.out.println("Quantidade necessaria para retirar: " + qtd_retirar);
             int qtd_retirada = 0;
-            System.out.println("---> Precisa remoção!");
             do { //vai remover ids até alcançar a quantidade de paginas necessaria
                 if (ids.isEmpty()) {
                     break;
@@ -114,22 +116,20 @@ public class Heap {
                 aux=0;
                 id = ids.remove(); //primeira remoção id//ATENÇAO: as paginas que sobrarem quando chegar no limite de remoção perderão referencia para pilha de exclusão! Consequencia: ocupando espaço no heap para sempre!               
                 qtd = ids.remove(); //segunda remoção quantidade de pag SOLUCIONADO TALVEZ
-                for (int j = 0; j < heap.length; j++) {//percorre heap procurando id                   
-                    if (this.heap[j].getEndereço() == id) { //se acha id na posição, apaga conteudo da pag e diz q esta livre
-                        this.heap[j].setDado(null);
-                        this.heap[j].setOcupado(false);
-                        cont_pag_livre++;
-                        // qtd_retirada++;
+                for (Pagina heap1 : heap) {
+                    //percorre heap procurando id
+                    if (heap1.getEndereço() == id) {//se acha id na posição, apaga conteudo da pag e diz q esta livre                     
+                        heap1.setDado(null);
+                        heap1.setOcupado(false);
+                        heap1.setEndereço(-1);
+                        cont_pag_livre++;                      
                         aux++;
                         System.out.println("Página removida do heap.");
                     }
                     if (aux == qtd)//chegou no limite de pags da requisicao, pode sair
                         break;
-//                    if(qtd_retirada == qtd_retirar)
-//                        break;
                 }
-                qtd_retirada += aux;
-                
+                qtd_retirada += aux;               
                 System.out.println("Quantidade retirada:" + qtd_retirada);
                 if (qtd_retirada >= qtd_retirar) {
                     break;
@@ -139,25 +139,16 @@ public class Heap {
             System.out.println("---> Nada a ser removido!!");
         }
     }
-
-//    class BinarySearch {
-//
-//        // Returns index of x if it is present in arr[l..r], else return -1 
-//        int binarySearch(Pagina[] arr, int l, int r, long id) {
-//            if (r >= l) {
-//                int mid = l + (r - l) / 2;
-//                // If the element is present at the middle itself 
-//                if (arr[mid].getEndereço() == id) {
-//                    return mid;
-//                }
-//                // If element is smaller than mid, then it can only be present in left subarray 
-//                if (arr[mid].getEndereço() > id) {
-//                    return binarySearch(arr, l, mid - 1, id);
-//                }
-//                // Else the element can only be present in right subarray 
-//                return binarySearch(arr, mid + 1, r, id);
-//            }
-//            // We reach here when element is not present in array 
-//            return -1;
-//        }
+    
+    public void printEstado(){
+        System.out.println("===================================================");
+        for (Pagina heap1 : heap) {
+            if (heap1.isOcupado()) {
+                System.out.println(heap1.getEndereço() + "---[ X ]");
+            } else {
+                System.out.println(heap1.getEndereço() + "---[ - ]");
+            }
+        }
+       System.out.println("===================================================");
+    }
 }

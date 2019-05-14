@@ -14,13 +14,15 @@ public class FilaCircular {
     private  Requisicao[] fila;
     private final int tamanho = 500;
     private int tamanhoAtual;
+    
     public FilaCircular() {
         this.tamanhoAtual = 0;
         this.ini = tamanhoAtual;
         this.fim = tamanhoAtual;
         this.fila = new Requisicao [tamanho];      
     } 
-   public boolean Inserir(Requisicao nova){
+   
+    public boolean Inserir(Requisicao nova){
         if (tamanhoAtual < tamanho){ //tem espaço
             fila[fim] = nova;
             fim = (fim+1)%tamanho;

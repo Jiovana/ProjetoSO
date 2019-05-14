@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.unipampa.projetoso;
+package projetoso;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -17,7 +17,7 @@ import model.Requisicao;
  *
  * @author gomes
  */
-public class Projeto_SO {
+public class ProjetoSO {
 
     /**
      * @param args the command line arguments
@@ -28,6 +28,7 @@ public class Projeto_SO {
         float limite_cheio; //porcentagem da capacidade do heap considerada cheia para executar garbage collector
         int num_req_aloc; // numero de requisições de alocação atendidas pelo gerenciador
         int tempo; //tempo de duração do programa em segundos
+        int num_req;//numero de requisições geradas por vez
 
         Scanner in = new Scanner(System.in);
 
@@ -56,6 +57,8 @@ public class Projeto_SO {
         limite_cheio = in.nextFloat();
         System.out.println("Informe o número de requisições a serem atendidas pelo gerenciador de memória: ");
         num_req_aloc = in.nextInt();
+        System.out.println("Informe o número de requisições geradas para o buffer por ciclo");
+        num_req = in.nextInt();
         System.out.println("Informe o tempo de execução do programa, em segundos:");
         tempo = in.nextInt();
 
@@ -64,46 +67,42 @@ public class Projeto_SO {
         FilaCircular filaReq = new FilaCircular(); //buffer circular de requisições 
 
         Heap heap = new Heap(limite_heap);
-        
-        int maxx = max*256;//multiplca pra achar valor em 1kbs
-        int minn = min*256;
 
-        long id_req = 0;
+        long id_req = 1;
         int aux = num_req_aloc;
-       
-        Requisicao rx ;
+        Requisicao rx;
+        Requisicao nova;
         Instant end;
-        Instant start = Instant.now();       
+        Instant start = Instant.now();
         do {
             //------inicio gerar requisições
-            int numreq = rand.nextInt(50); //num de req geradas por vez
+            int numreq = rand.nextInt(num_req); //num de req geradas por vez
             do { //loop para inserir 'numreq' requisições no buffer, de forma de a quantidade de requisições inseridas é aleatoria
-                int tamanho = rand.nextInt((maxx - minn) + 1) + minn;
-                Requisicao nova = new Requisicao(tamanho,id_req++);
+                int tamanho = rand.nextInt((max - min) + 1) + min;
+                nova = new Requisicao(tamanho, id_req++);
                 filaReq.Inserir(nova);
                 numreq--;
             } while (numreq > 0);
             //------fim gerar requisições
-            //---- inicio inserção no heap, 1 req por vez dentro do loop.           
-            do {
+
+            do { //loop de inserir e remover
                 rx = filaReq.Remover();
                 if (rx == null) {
                     break;
-                }else{
-                    if(heap.isLimt()==true){
-                     heap.removeHeap(limite_cheio);
-                    } else {
-                    heap.insereHeap(rx,limite_cheio);
-                    aux--;
+                } else {
+                    if (!heap.verificaLimite(limite_cheio)) { //testa o limite para ver se precisa limpar
+                        heap.insereHeap(rx);//----inserção no heap, 1 req por vez dentro do loop.           
+                        aux--;
+                    } else {//-----'garbage collector' - elimina 25% do limite máximo estabelecido (possui loop interno)          
+                        heap.removeHeap(limite_cheio);
                     }
                 }
             } while (aux > 0);
-            aux = num_req_aloc; //mudar logica de remoção pra ficar certo
-            //----- fim inserção no heap           
-            //----- inicio 'garbage collector' - elimina 25% do limite máximo estabelecido (possui loop interno)
-            //heap.removeHeap(limite_cheio);
-            //----- fim 'garbage collector'
+            aux = num_req_aloc;
+            heap.printEstado();
             end = Instant.now();
         } while ((Duration.between(start, end).getSeconds()) < tempo);//compara tempo de execução do programa com o tempo definido pelo usuario       
     }
 }
+    
+
