@@ -27,8 +27,8 @@ public class ProjetoSO {
         int limite_heap; //limite de capacidade do heap
         float limite_cheio; //porcentagem da capacidade do heap considerada cheia para executar garbage collector
         int num_req_aloc; // numero de requisições de alocação atendidas pelo gerenciador
-        int tempo; //tempo de duração do programa em segundos
-        int num_req;//numero de requisições geradas por vez
+        int qtd_req; //quantidade de requisições que serão geradas ao todo
+        int num_req;//numero de requisições geradas por ciclo
 
         Scanner in = new Scanner(System.in);
 
@@ -57,10 +57,10 @@ public class ProjetoSO {
         limite_cheio = in.nextFloat();
         System.out.println("Informe o número de requisições a serem atendidas pelo gerenciador de memória: ");
         num_req_aloc = in.nextInt();
-        System.out.println("Informe o número de requisições geradas para o buffer por ciclo");
+        System.out.println("Informe o número de requisições geradas por ciclo para o buffer ");
         num_req = in.nextInt();
-        System.out.println("Informe o tempo de execução do programa, em segundos:");
-        tempo = in.nextInt();
+        System.out.println("Informe a quantidade de requisições a serem geradas(total):");
+        qtd_req = in.nextInt();
 
         Random rand = new Random();
 
@@ -84,11 +84,12 @@ public class ProjetoSO {
                 numreq--;
             } while (numreq > 0);
             //------fim gerar requisições
-
             do { //loop de inserir e remover
                 rx = filaReq.Remover();
                 if (rx == null) {
                     break;
+                }else if(id_req >= qtd_req){//tentativa de fazer com que pare de executar ao atingir o limite de requisições informado
+                    break; //mas sempre acaba passando 
                 } else {
                     if (!heap.verificaLimite(limite_cheio)) { //testa o limite para ver se precisa limpar
                         heap.insereHeap(rx);//----inserção no heap, 1 req por vez dentro do loop.           
@@ -99,10 +100,21 @@ public class ProjetoSO {
                 }
             } while (aux > 0);
             aux = num_req_aloc;
-            heap.printEstado();
-            end = Instant.now();
-        } while ((Duration.between(start, end).getSeconds()) < tempo);//compara tempo de execução do programa com o tempo definido pelo usuario       
+            heap.printEstado();           
+        } while (id_req <= qtd_req);//compara tempo de execução do programa com o tempo definido pelo usuario       
+        end = Instant.now();
+        
+        System.out.println("FIM=========================");
+        System.out.println("Número de requisições atendidas: " +id_req); 
+        System.out.println("Nº de páginas no heap: " +limite_heap);
+        System.out.println("Nº de requisições atendidas por ciclo: " +num_req_aloc);
+        System.out.println("Nº de requisições geradas no buffer por ciclo: " +num_req);
+        System.out.println("Intervalo de páginas estabelecido: " +min +" a " +max);
+        System.out.println("Limite de armazenamento para executar limpeza: " +limite_cheio);
+        System.out.println("Tempo necessário para atender às requisições: " +(Duration.between(start, end).getSeconds()) +" segundos." );
+    //mudar loop para ser por quantidade de requisição, mostrar tempo no final da execução
     }
+   
 }
     
 
