@@ -12,23 +12,19 @@ package model;
 public class Requisicao {
 
     private long id;
-    private int[] objeto; //dado dentro da pagina
     private int qtdpag; //quantidade de paginas calculada de acordo com limite   
-    private Pagina[] paginas;
+    private int tamKB;
 
     //tamanho limite do vetor objeto
-    public Requisicao(int tamanho, long id) {
-        this.id = id;
-        this.objeto = new int[256]; //tamanho de  1 pagina
-        for (int i = 0; i < 256; i++){ //preenchendo vetor objeto com quantidade fixa de info pq n faz diferença
-            this.objeto[i] = i;
-        }
-        this.qtdpag = tamanho;
-        this.paginas = new Pagina[qtdpag]; //vetor de paginas com tamanho de acordo com quantidade de paginas        
-        for (int i = 0; i < qtdpag; i++) { //vai preencher as paginas da requisicao com o endereço da req e dado objeto
-            this.paginas[i] = new Pagina(this.id, false);
-            this.paginas[i].setDado(objeto); //colocando dado dentro da pagina i          
-        }
+    public Requisicao(int tamanho, long id, int tam_pag) {
+        this.id = id;     
+        this.tamKB = tamanho;
+       
+        this.qtdpag = tamanho/tam_pag;//vai calcular quantas paginas vai precisar de acordo com o tamanho de pag
+        if(tamanho%tam_pag!=0) //se o tamanho total for impar vai dar valor com virgula e tem q add + 1 pagina
+            this.qtdpag++;
+        else if(this.qtdpag < 1) //se ele for mto pequeno tem q deixar 1 pagina pelo menos
+            this.qtdpag = 1;
     }
 
     public long getId() {
@@ -45,17 +41,12 @@ public class Requisicao {
         this.qtdpag = qtdpag;
     }
 
-    public Pagina[] getPaginas() {
-        return paginas;
-    }
-    public void setPaginas(Pagina[] paginas) {
-        this.paginas = paginas;
+    public int getTamKB() {
+        return tamKB;
     }
 
-    public int[] getObjeto() {
-        return objeto;
+    public void setTamKB(int tamKB) {
+        this.tamKB = tamKB;
     }
-    public void setObjeto(int[] objeto) {
-        this.objeto = objeto;
-    }
+    
 }
