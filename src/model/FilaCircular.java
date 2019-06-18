@@ -10,19 +10,19 @@ package model;
  * @author gomes
  */
 public class FilaCircular {
-    private int ini, fim;    
-    private  Requisicao[] fila;
+    static volatile int ini, fim;    
+    static volatile Requisicao[] fila;
     private final int tamanho = 500;
-    private int tamanhoAtual;
+    static volatile int tamanhoAtual;
     
     public FilaCircular() {
-        this.tamanhoAtual = 0;
-        this.ini = tamanhoAtual;
-        this.fim = tamanhoAtual;
-        this.fila = new Requisicao [tamanho];      
+        tamanhoAtual = 0;
+        ini = tamanhoAtual;
+        fim = tamanhoAtual;
+        fila = new Requisicao [tamanho];      
     } 
    
-    public boolean Inserir(Requisicao nova){
+    public synchronized boolean Inserir(Requisicao nova){
         if (tamanhoAtual < tamanho){ //tem espaço
             fila[fim] = nova;
             fim = (fim+1)%tamanho;
@@ -33,7 +33,7 @@ public class FilaCircular {
             return false;
         }       
    }     
-   public  Requisicao Remover(){
+   public  synchronized Requisicao Remover(){
        if(tamanhoAtual > 0){
            Requisicao req = fila[ini];
            ini=(ini+1)%tamanho;

@@ -98,7 +98,7 @@ public class ProjetoSO {
                         heap.printLista();
                         aux--;
                         cont++;
-                    } else {//-----'garbage collector' - elimina 25% do limite máximo estabelecido (possui loop interno)          
+                    } else {//'garbage collector' - elimina 25% do limite máximo estabelecido (possui loop interno)          
                         heap.removeHeap(limite_cheio);
                     }
                 }

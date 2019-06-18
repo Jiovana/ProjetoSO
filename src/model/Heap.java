@@ -30,7 +30,7 @@ public class Heap {
         }
         this.cont_pag_livre = heap.length;      
     }
-
+    
     public boolean verificaLimite(float limite_cheio) {
         float limite = (heap.length * (limite_cheio / 100));
         if ((heap.length - cont_pag_livre) >= (int) limite) {
