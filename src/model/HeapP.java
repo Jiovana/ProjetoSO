@@ -37,7 +37,7 @@ public class HeapP {
         cont_pag_livre++;
     }
 
-    public boolean verificaLimite(float limite_cheio) {
+    public synchronized boolean verificaLimite(float limite_cheio) {
         float limite = (heap.length * (limite_cheio / 100));
         if ((heap.length - cont_pag_livre) >= (int) limite) {
             System.out.println("Precisa limpar");
@@ -51,31 +51,25 @@ public class HeapP {
         if (req == null) {
             notify();
             try {
+                System.out.println("entrou em ehvazia");
                 wait();
             } catch (Exception e) {
                 System.out.println("Wait Failed!");
             }
             return true;
-        }else
+        } else {
             return false;
+        }
 
     }
 
     public synchronized boolean verificaLimiteTotal(int qtd_pag) {
-        while (true) {
-            if (qtd_pag < cont_pag_livre) { //então tem paginas livres o suficiente para requisiçao
-                cont_pag_livre -= qtd_pag;
-                break;
-            } else {
-                notify();
-                try {
-                    wait();
-                } catch (Exception e) {
-                    System.out.println("Wait Failed!");
-                }
-            }
+        if (qtd_pag < cont_pag_livre) { //então tem paginas livres o suficiente para requisiçao
+            cont_pag_livre -= qtd_pag;
+            return true;
+        } else {
+            return false;
         }
-        return true;
     }
 
     /**

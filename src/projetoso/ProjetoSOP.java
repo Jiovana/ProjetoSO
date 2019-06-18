@@ -11,7 +11,9 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import model.FilaCircular;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import model.FilaCircularP;
 import model.Heap;
 import model.HeapP;
 import model.Requisicao;
@@ -23,8 +25,8 @@ import model.Requisicao;
 public class ProjetoSOP {
 
     static volatile boolean flag = true;
-    static volatile FilaCircular fila = new FilaCircular();
-
+    static volatile FilaCircularP fila = new FilaCircularP();
+    
     /**
      * @param args the command line arguments
      */
@@ -76,13 +78,15 @@ public class ProjetoSOP {
         Buffer buf = new Buffer(max, min, tam_pag, num_req);
         InserirP ins = new InserirP(heap, qtd_req);
         GarbageCollector gb = new GarbageCollector(heap, limite_cheio);
+        
+        flag = true;
 
         Instant start = Instant.now();
         buf.start();
         ins.start();
         gb.start();
         end = Instant.now();
-        
+
 //        for (int i = 0; i < qtd_req; i++) {
 //            System.out.println("Requisição"+i);
 //            Thread t = new InserirP(heap, filaReq.Remover(),qtd_req );
@@ -94,17 +98,28 @@ public class ProjetoSOP {
 //        if (exec.isTerminated()) {
 //        	 System.out.println("Finished all threads");
 //        }
-        
-        System.out.println("FIM=========================");
-        System.out.println("Número de requisições atendidas: " + qtd_req);
-        System.out.println("Tamanho de pagina em KB:" + tam_pag);
-        System.out.println("Nº de páginas no heap: " + limite_heap);
-        System.out.println("Nº de requisições atendidas por ciclo: " + num_req_aloc);
-        System.out.println("Nº de requisições geradas no buffer por ciclo: " + num_req);
-        System.out.println("Intervalo em KB definido: " + min + " a " + max);
-        System.out.println("Limite de armazenamento para executar limpeza: " + limite_cheio);
-        System.out.println("Tempo necessário para atender às requisições: " + (Duration.between(start, end).getSeconds()) + " segundos.");
+        if (!flag) {
+            try {
+                buf.join();
+                gb.join();
+                ins.join();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(ProjetoSOP.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            System.out.println("FIM=========================");
+            System.out.println("Número de requisições atendidas: " + qtd_req);
+            System.out.println("Tamanho de pagina em KB:" + tam_pag);
+            System.out.println("Nº de páginas no heap: " + limite_heap);
+            System.out.println("Nº de requisições atendidas por ciclo: " + num_req_aloc);
+            System.out.println("Nº de requisições geradas no buffer por ciclo: " + num_req);
+            System.out.println("Intervalo em KB definido: " + min + " a " + max);
+            System.out.println("Limite de armazenamento para executar limpeza: " + limite_cheio);
+            System.out.println("Tempo necessário para atender às requisições: " + (Duration.between(start, end).getSeconds()) + " segundos.");
+        }
+    }
+    public static class PC{
+        FilaCircularP fila = new FilaCircularP();
+
 
     }
-
 }

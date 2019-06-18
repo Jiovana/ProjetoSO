@@ -9,24 +9,25 @@ package model;
  *
  * @author gomes
  */
-public class FilaCircular {
-    private int ini, fim;    
-    private final Requisicao[] FILA;
+public class FilaCircularP {
+    private  int ini, fim;    
+    private static  Requisicao[] fila;
     private final int tamanho = 500;
-    private int tamanhoAtual;
+    private volatile int tamanhoAtual;
     
-    public FilaCircular() {
+    public FilaCircularP() {
         tamanhoAtual = 0;
         ini = tamanhoAtual;
         fim = tamanhoAtual;
-        FILA = new Requisicao [tamanho];      
-    } 
+        fila = new Requisicao [tamanho];      
+    }      
    
-    public  boolean Inserir(Requisicao nova){
+    public synchronized boolean Inserir(Requisicao nova){
         if (tamanhoAtual < tamanho){ //tem espaço
-            FILA[fim] = nova;
+            fila[fim] = nova;
             fim = (fim+1)%tamanho;
             tamanhoAtual++;        
+            System.out.println("Tamanho atual do buffer: " +tamanhoAtual);
             System.out.println("Requisicao inserida no buffer");
             return true;
         }else{
@@ -34,18 +35,20 @@ public class FilaCircular {
             return false;
         }       
    }     
-   public  Requisicao Remover(){
+   public  synchronized Requisicao Remover(){
        if(tamanhoAtual > 0){
-           Requisicao req = FILA[ini];
+           Requisicao req = fila[ini];
            ini=(ini+1)%tamanho;
            tamanhoAtual--;
+           System.out.println("Tamanho atual do buffer: " +tamanhoAtual);
+           System.out.println("Requisicao removida do buffer");
            return req;
        }else{
            System.out.println("Buffer vazio");
            return null;
        }      
    }  
-
+   
     public int getIni() {
         return ini;
     }
@@ -62,14 +65,11 @@ public class FilaCircular {
         this.fim = fim;
     }
 
-    public int getTamanhoAtual() {
+    public synchronized int getTamanhoAtual() {
         return tamanhoAtual;
     }
 
     public void setTamanhoAtual(int tamanhoAtual) {
         this.tamanhoAtual = tamanhoAtual;
     }
-   
-   
-   
 }

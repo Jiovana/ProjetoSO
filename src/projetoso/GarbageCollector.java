@@ -16,9 +16,8 @@ public class GarbageCollector extends Thread {
 
     long id_req = 1;
     int cont = 0;
-    
+
     float limite_cheio;
-  
 
     HeapP heap;
 
@@ -29,16 +28,24 @@ public class GarbageCollector extends Thread {
 
     @Override
     public void run() {
-        this.removeParalelo();
+        System.out.println("rodando GB");
+        removeParalelo();
     }
 
-    public void removeParalelo() {
-        while (ProjetoSOP.flag) {
-            if (heap.verificaLimite(limite_cheio)) {
-                heap.removeHeap(limite_cheio);
+    public synchronized void removeParalelo() {
+        while (true) {
+            while (!heap.verificaLimite(limite_cheio)) {
+                notify();
+                try {
+                    System.out.println("GB aguardando...");
+                    wait();
+                } catch (Exception e) {
+                    System.out.println("Wait Failed!");
+                }
             }
+            System.out.println("Removendo...");
+            heap.removeHeap(limite_cheio);
+            notifyAll();
         }
     }
 }
-
-

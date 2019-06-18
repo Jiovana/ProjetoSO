@@ -7,6 +7,8 @@ package projetoso;
 
 import java.time.Instant;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import model.FilaCircular;
 import model.Heap;
 import model.HeapP;
@@ -31,19 +33,42 @@ public class InserirP extends Thread {
 
     @Override
     public void run() {
-        this.insereParalelo();
+        System.out.println("rodando inserir");
+        insereParalelo();
     }
 
-    public void insereParalelo() {
-        for (int i = 0; i < this.qtd_req; i++) { //loop até inserir todas as requisições
-            this.req = ProjetoSOP.fila.Remover(); // e se estiver vaiza aqui ein?
-            if (!heap.ehVazia(this.req)) { // testa se n é vazia
-                if (heap.verificaLimiteTotal(req.getQtdpag())) { //testa o limite para ver se precisa limpar
-                    heap.insereHeap(req);//----inserção no heap, 1 req por vez dentro do loop.           
-                    heap.printLista();
+    public synchronized void insereParalelo() {
+        while (true) {
+            // synchronized (ProjetoSOP.fila) {
+            for (int i = 0; i < this.qtd_req; i++) { //loop até inserir todas as requisições
+                while (ProjetoSOP.fila.getTamanhoAtual() == 0) {
+                    System.out.println("buffer vazio!");
+                    notify();
+                    try {
+                        System.out.println("inserir esperando...");
+                        wait();
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(InserirP.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
+                this.req = ProjetoSOP.fila.Remover(); // e se estiver vaiza aqui ein?
+                //if (!heap.ehVazia(this.req)) { // testa se n é vazia
+                while (!heap.verificaLimiteTotal(req.getQtdpag())) {
+                    notify();
+                    try {
+                        System.out.println("heap cheio, inserir esperando limpar...");
+                        wait();
+                    } catch (Exception e) {
+                        System.out.println("Wait Failed!");
+                    }
+                }
+                heap.insereHeap(req);//----inserção no heap, 1 req por vez dentro do loop.           
+                heap.printLista();
+                notifyAll();
+                
             }
+            ProjetoSOP.flag = false;
+            //}
         }
-        ProjetoSOP.flag = false;
     }
 }
