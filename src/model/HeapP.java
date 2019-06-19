@@ -103,10 +103,10 @@ public class HeapP {
             }
         }
         tp = new Tupla(req.getId(), pos, req.getTamKB());
-        synchronized (lista) {
+        //synchronized (lista) {
             lista.add(tp); //insere na lista o id, o ponteiro p ultima pag, e o tam em KB da req.
             lista.sort(Collections.reverseOrder(Comparator.comparing(t -> t.getTamanho()))); //ordena em ordem decrescente pelo tamanho
-        }
+        //}
         System.out.println("A requisição foi inserida com sucesso");
     }
 
@@ -131,9 +131,9 @@ public class HeapP {
             }
             cont_pag = 0; //contador de paginas retiradas da requisicao atual
             ant = 0; //armazena ponteiro para pagina anterior
-            synchronized (lista) {
+           // synchronized (lista) {
                 tp = lista.remove(0);//remove primeira posição da lista de req, ou seja, a req inserida de maior tamanho
-            }
+            //}
             pont = tp.getPont_ult(); // pega ponteiro para ultima pagina inserida dessa requisicao              
             while (ant != -1) { //remove até tirar todas pags da requisição da memoria
                 synchronized (this.heap[pont]) {

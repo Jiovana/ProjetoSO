@@ -11,7 +11,7 @@ package model;
  */
 public class FilaCircularP {
     private  int ini, fim;    
-    private static  Requisicao[] fila;
+    private  Requisicao[] fila;
     private final int tamanho = 500;
     private volatile int tamanhoAtual;
     
