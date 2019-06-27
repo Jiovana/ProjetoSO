@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -18,8 +20,8 @@ import java.util.Random;
 public class HeapP {
 
     //memoria com paginas de tamanho 1kbyte 
-    static volatile Pagina[] heap; // heap é um vetor de paginas de tamanho informado pelo user
-    static volatile int cont_pag_livre; //conta quantas paginas tem livres no heap
+    static Pagina[] heap; // heap é um vetor de paginas de tamanho informado pelo user
+    static int cont_pag_livre; //conta quantas paginas tem livres no heap
     static volatile List<Tupla> lista;
 
     public HeapP(int limite_heap, int tam_pag) {
@@ -42,6 +44,7 @@ public class HeapP {
            // System.out.println("Precisa limpar");
             return true;
         } else {
+            //notify();
             return false;
         }
     }
@@ -51,8 +54,13 @@ public class HeapP {
             cont_pag_livre -= qtd_pag;
             return true;
         } else {
-            return false;
+            //try {
+               return false;
+//            } catch (InterruptedException ex) {
+//                Logger.getLogger(HeapP.class.getName()).log(Level.SEVERE, null, ex);
+//            }
         }
+        //return false;
     }
 
     /**
