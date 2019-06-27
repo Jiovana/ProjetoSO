@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Random;
 
 /**
@@ -40,27 +39,11 @@ public class HeapP {
     public synchronized boolean verificaLimite(float limite_cheio) {
         float limite = (heap.length * (limite_cheio / 100));
         if ((heap.length - cont_pag_livre) >= (int) limite) {
-            System.out.println("Precisa limpar");
+           // System.out.println("Precisa limpar");
             return true;
         } else {
             return false;
         }
-    }
-
-    public synchronized boolean ehVazia(Requisicao req) {
-        if (req == null) {
-            notify();
-            try {
-                System.out.println("entrou em ehvazia");
-                wait();
-            } catch (Exception e) {
-                System.out.println("Wait Failed!");
-            }
-            return true;
-        } else {
-            return false;
-        }
-
     }
 
     public synchronized boolean verificaLimiteTotal(int qtd_pag) {
@@ -82,8 +65,8 @@ public class HeapP {
      */
     public void insereHeap(Requisicao req) {
         int qtdpag = req.getQtdpag(); //pega quantidade de paginas da requisição
-        System.out.print("---> Requisição nº " + req.getId());
-        System.out.println(" com " + req.getQtdpag() + " paginas <---");
+       // System.out.print("---> Requisição nº " + req.getId());
+       // System.out.println(" com " + req.getQtdpag() + " paginas <---");
         Random rand = new Random();
         int pos = -1;
         int id_ant = -1;// posicao no heap da pagina anterior a essa atual, se -1 significa q esta na primeira pagina
@@ -98,7 +81,7 @@ public class HeapP {
                     heap[pos].setId_ant(id_ant); // coloca ponteiro para pagina inserida antes dessa
                     qtdpag--;
                     id_ant = pos;//define o id da anterior como a posicao atual para a proxima pagina usar
-                    System.out.println("pagina da requisicao inserida!");
+                    //System.out.println("pagina da requisicao inserida!");
                 }
             }
         }
@@ -107,7 +90,7 @@ public class HeapP {
             lista.add(tp); //insere na lista o id, o ponteiro p ultima pag, e o tam em KB da req.
             lista.sort(Collections.reverseOrder(Comparator.comparing(t -> t.getTamanho()))); //ordena em ordem decrescente pelo tamanho
         //}
-        System.out.println("A requisição foi inserida com sucesso");
+        //System.out.println("A requisição foi inserida com sucesso");
     }
 
     /**
@@ -121,9 +104,9 @@ public class HeapP {
         int cont_pag, pont, ant;
         float limitesup = (heap.length * (limite_cheio / 100));
         float limiteinf = (float) (limitesup * 0.5);
-        System.out.println("Limite inferior do heap: " + limiteinf);
+        //System.out.println("Limite inferior do heap: " + limiteinf);
         int qtd_retirar = (int) (limitesup - limiteinf); //qtd necessaria de paginas para retirar e chegar a 25% abaixo do limite estabelecido
-        System.out.println("Quantidade necessaria para retirar: " + qtd_retirar);
+        //System.out.println("Quantidade necessaria para retirar: " + qtd_retirar);
         int qtd_retirada = 0;
         do { //vai remover pagina até alcançar a quantidade de paginas necessaria
             if (lista.isEmpty()) {
@@ -131,14 +114,14 @@ public class HeapP {
             }
             cont_pag = 0; //contador de paginas retiradas da requisicao atual
             ant = 0; //armazena ponteiro para pagina anterior
-           // synchronized (lista) {
+            //synchronized (lista) {
                 tp = lista.remove(0);//remove primeira posição da lista de req, ou seja, a req inserida de maior tamanho
             //}
             pont = tp.getPont_ult(); // pega ponteiro para ultima pagina inserida dessa requisicao              
             while (ant != -1) { //remove até tirar todas pags da requisição da memoria
-                synchronized (this.heap[pont]) {
+                synchronized (heap[pont]) {
                     if (heap[pont].getEndereço() == tp.getId_req()) { //testa se o endereço daquela posicao é realmente o da req selecionada
-                        System.out.println("Endereços iguais: a posicao esta correta!");
+                       // System.out.println("Endereços iguais: a posicao esta correta!");
                         ant = heap[pont].getId_ant();//pega endereço para pag anterior                 
                         heap[pont].setEndereço(-1);//seta endereço da pag para invalido
                         heap[pont].setOcupado(false); //seta q n esta ocupado
@@ -147,14 +130,14 @@ public class HeapP {
                         //cont_pag_livre++;
                         this.incContPagLivre();
                         cont_pag++;
-                        System.out.println("Página da req" + tp.getId_req() + " removida do heap.");
+                        //System.out.println("Página da req" + tp.getId_req() + " removida do heap.");
                     } else {
-                        System.out.println("Erro: posicao errada salva!!");
+                        //System.out.println("Erro: posicao errada salva!!");
                     }
                 }
             }
             qtd_retirada += cont_pag; //incrementa quantidade total retirada    
-            System.out.println("Quantidade retirada:" + qtd_retirada);
+            //System.out.println("Quantidade retirada:" + qtd_retirada);
             if (qtd_retirada >= qtd_retirar) {
                 break;
             }

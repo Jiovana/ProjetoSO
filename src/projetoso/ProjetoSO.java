@@ -105,7 +105,7 @@ public class ProjetoSO {
             } while (aux > 0);
             aux = num_req_aloc;
            
-            heap.printEstado();           
+            //heap.printEstado();           
         } while (cont <= qtd_req);//compara tempo de execução do programa com o tempo definido pelo usuario       
         end = Instant.now();
         
@@ -117,7 +117,7 @@ public class ProjetoSO {
         System.out.println("Nº de requisições geradas no buffer por ciclo: " +num_req);
         System.out.println("Intervalo em KB definido: " +min +" a " +max);
         System.out.println("Limite de armazenamento para executar limpeza: " +limite_cheio);
-        System.out.println("Tempo necessário para atender às requisições: " +(Duration.between(start, end).getSeconds()) +" segundos." );
+        System.out.println("Tempo necessário para atender às requisições: " +(Duration.between(start, end).toMillis()) +" milisegundos." );
     }
    
 }

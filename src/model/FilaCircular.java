@@ -27,10 +27,10 @@ public class FilaCircular {
             FILA[fim] = nova;
             fim = (fim+1)%tamanho;
             tamanhoAtual++;        
-            System.out.println("Requisicao inserida no buffer");
+            //System.out.println("Requisicao inserida no buffer");
             return true;
         }else{
-            System.out.println("Sem espaço no buffer de requisições");
+            //System.out.println("Sem espaço no buffer de requisições");
             return false;
         }       
    }     
@@ -41,7 +41,7 @@ public class FilaCircular {
            tamanhoAtual--;
            return req;
        }else{
-           System.out.println("Buffer vazio");
+           //System.out.println("Buffer vazio");
            return null;
        }      
    }  

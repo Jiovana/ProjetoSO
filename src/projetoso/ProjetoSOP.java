@@ -24,12 +24,12 @@ import model.Requisicao;
  */
 public class ProjetoSOP {
 
-    static volatile FilaCircularP fila = new FilaCircularP();
+    static FilaCircularP fila = new FilaCircularP();
     static int tam_pag; //tamanho da pagina em KB
     static int min, max;//valores minimo e maximo do tamanho da requisicao em KB
     static int limite_heap; //limite de capacidade do heap
     static float limite_cheio; //porcentagem da capacidade do heap considerada cheia para executar garbage collector
-    static int num_req;
+
     static int qtd_req; //quantidade de requisições que serão geradas ao todo
 
     static HeapP heap;
@@ -64,22 +64,20 @@ public class ProjetoSOP {
         limite_heap = in.nextInt();
         System.out.println("Informe o percentual limite para o heap estar cheio: ");
         limite_cheio = in.nextFloat();
-        System.out.println("Informe o número de requisições geradas por ciclo para o buffer ");
-        num_req = in.nextInt();
+
         System.out.println("Informe a quantidade de requisições a serem geradas(total):");
         qtd_req = in.nextInt();
 
         heap = new HeapP(limite_heap, tam_pag);
 
-        
         final PC pc = new PC();
 
         Thread buf1 = new Thread(() -> {
             pc.produce();
         });
-        Thread buf2 = new Thread(() -> {
-            pc.produce();
-        });
+//        Thread buf2 = new Thread(() -> {
+//            pc.produce();
+//        });
 
         Thread ins = new Thread(() -> {
             pc.consume();
@@ -91,15 +89,13 @@ public class ProjetoSOP {
 
         Instant start = Instant.now();
         buf1.start();
-        buf2.start();
+        //buf2.start();
         ins.start();
         gb.start();
-        
-      
-        
+
         try {
             buf1.join();
-            buf2.join();
+            //buf2.join();
             gb.join();
             ins.join();
             System.out.println("FIM=========================");
@@ -115,113 +111,112 @@ public class ProjetoSOP {
     }
 
     public static class PC {
+
         volatile boolean flag = true;
         Lock lock = new ReentrantLock();
-        Condition podeLimpar = lock.newCondition();
+        Condition podeBuffar = lock.newCondition();
         Condition podeInserir = lock.newCondition();
         Random rand = new Random();
         Requisicao nova, req;
 
         public void produce() {
-        
+            System.out.println("Buffer rodando...");
+            boolean aux = false;
             while (flag) {
+                int tamanho = rand.nextInt((ProjetoSOP.max - ProjetoSOP.min) + 1) + ProjetoSOP.min;
+                this.nova = new Requisicao(tamanho, (Instant.now().toEpochMilli() + rand.nextInt(Integer.MAX_VALUE)), ProjetoSOP.tam_pag);
+                //try {
+//                    // synchronized (this) {
+//                    while (ProjetoSOP.fila.getTamanhoAtual() == 500) {
+//                        // System.out.println("Buffer cheio. Esperando consumidor");
+//                        if (!flag) {
+//                            aux = true;
+//                            break;
+//                        } else {
+//                            wait(); //espera enquanto buffer estiver cheio
+//                        }
+//                    }
+                // System.out.println("Buffer produziu req: " + nova.getId());
+                while (!aux) {
+                    if (!flag) {
+                        break;
+                    }
+                    aux = ProjetoSOP.fila.Inserir(nova, flag);
+                }
+                //notify(); //notifica consumidor para acordar 
                 if (!flag) {
                     break;
                 }
-                
-                int tamanho = rand.nextInt((ProjetoSOP.max - ProjetoSOP.min) + 1) + ProjetoSOP.min;
-                this.nova = new Requisicao(tamanho, (Instant.now().toEpochMilli() + rand.nextInt(Integer.MAX_VALUE)), ProjetoSOP.tam_pag);
-                try {
-                    synchronized (this) {
-                        while (ProjetoSOP.fila.getTamanhoAtual() == 500) {
-                            System.out.println("Buffer cheio. Esperando consumidor");
-                            wait(); //espera enquanto buffer estiver cheio
-                        }
-                        System.out.println("Buffer produziu req: " + nova.getId());
-                        ProjetoSOP.fila.Inserir(nova);
-                        notify(); //notifica consumidor para acordar                     
-                    }
-                } catch (InterruptedException exception) {
-                    exception.printStackTrace();
-                }
-                
+//                } catch (InterruptedException exception) {
+//                    exception.printStackTrace();
+//                }
             }
             System.out.println("Buffer encerrado!!");
         }
 
         public void consume() {
+            System.out.println("Inserir rodando...");
+            boolean aux = false;
             int i = 0;
             while (i < ProjetoSOP.qtd_req) {
-                try {
-                    synchronized (this) {
-                        while (ProjetoSOP.fila.getTamanhoAtual() == 0) {
-                            System.out.println("Buffer vazio. Esperando produtor");
-                            wait();
-                        }
-                        req = ProjetoSOP.fila.Remover(); // e se estiver vaiza aqui ein?
-                        System.out.println("Consumidor pegou req: " + req.getId());
-
-                        lock.lock();
-                        try {
-                            while (!ProjetoSOP.heap.verificaLimiteTotal(req.getQtdpag())) {
-                                System.out.println("Heap Cheio. Esperando para inserir");
-                                podeInserir.await();
-                            }
-                            ProjetoSOP.heap.insereHeap(req);//----inserção no heap, 1 req por vez dentro do loop.                                  
-                            
-                        } finally {
-                            podeLimpar.signal();
-                            lock.unlock();
-                        }
-                        ProjetoSOP.heap.printLista();
-                        i++;
-                        System.out.println("Requisicao numero: " + i);
-                        notify();
-                    }
-                } catch (InterruptedException exception) {
-                    exception.printStackTrace();
+                //try {
+//                    while (ProjetoSOP.fila.getTamanhoAtual() == 0) {
+//                        //System.out.println("Buffer vazio. Esperando produtor");
+//                        wait();
+//                    }
+                while (req == null) {
+                    req = ProjetoSOP.fila.Remover(); // e se estiver vazia aqui ein?
                 }
+                //System.out.println("Consumidor pegou req: " + req.getId()); 
+                aux = false;
+                while (!aux) {
+                    if (ProjetoSOP.heap.verificaLimiteTotal(req.getQtdpag())) {
+                        // System.out.println("Heap Cheio. Esperando para inserir");
+                        ProjetoSOP.heap.insereHeap(req);//----inserção no heap, 1 req por vez dentro do loop.                                                         
+                        //ProjetoSOP.heap.printLista();
+                        i++;
+                        aux = true;
+                    }
+                }
+                //System.out.println("Requisicao numero: " + i);
+                //notify();
+                //     }
+//                } catch (InterruptedException exception) {
+//                    exception.printStackTrace();
+//                }
             }
             flag = false; //diz a main que acabou as requisições
             System.out.println("-----> Acabou requisições");
             end = Instant.now();
-            if (!flag) {
-                lock.lock();
-                try {
-                    podeLimpar.signal();
-                } finally {
-                    lock.unlock();
-                }
-            }
-
         }
 
         public void remove() {
+            System.out.println("Remover rodando...");
             boolean aux = false;
             while (flag) {
-                lock.lock();
-                try {
-                    while (!ProjetoSOP.heap.verificaLimite(ProjetoSOP.limite_cheio)) {
-                        System.out.println("Esperando para limpar");
-                        if (!flag) {
-                            aux = true;
-                            break;
-                        } else {
-                            podeLimpar.await();
-                        }
-                    }
-                    if (aux) {
+                //lock.lock();
+                //try {
+                while (!ProjetoSOP.heap.verificaLimite(ProjetoSOP.limite_cheio)) {
+                    if (!flag) {
+                        aux = true;
                         break;
+                    } else {
+                        // System.out.println("Esperando para limpar");
+                        // podeLimpar.await();
                     }
-                    System.out.println("Removendo...");
-                    ProjetoSOP.heap.removeHeap(ProjetoSOP.limite_cheio);
-                    podeInserir.signal();
-                    //}
-                } catch (InterruptedException exception) {
-                    exception.printStackTrace();
-                } finally {
-                    lock.unlock(); // unlock this object
-                } // end finally
+                }
+                if (aux) {
+                    break;
+                }
+                //System.out.println("Removendo...");
+                ProjetoSOP.heap.removeHeap(ProjetoSOP.limite_cheio);
+//                podeInserir.signal();
+                //}
+//                } catch (InterruptedException exception) {
+//                    exception.printStackTrace();
+//                } finally {
+//                    lock.unlock(); // unlock this object
+//                } // end finally
 
             }
             System.out.println("Remove encerrado!!");
